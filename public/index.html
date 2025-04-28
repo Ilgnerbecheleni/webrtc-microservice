@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Microserviço de Chamadas WebRTC</title>
+  <style>
+    #inicio, #painel {
+      display: none;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Microserviço de Chamadas WebRTC</h1>
+
+  <!-- Tela de início -->
+  <div id="inicio">
+    <button id="entrar">Entrar no Sistema</button>
+  </div>
+
+  <!-- Painel principal -->
+  <div id="painel">
+    <div id="meu-id">Seu ID: <span id="meu-id-span"></span></div>
+
+    <div>
+      <h2>Clientes Disponíveis</h2>
+      <ul id="clientes"></ul>
+    </div>
+
+    <div id="chamada" style="display:none;">
+      <h2>Chamada em andamento</h2>
+      <button id="encerrar">Encerrar</button>
+    </div>
+  </div>
+
+  <audio id="toque" src="toque.mp3" preload="auto" muted></audio>
+
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  <script src="script.js"></script>
+
+</body>
+</html>
