@@ -69,16 +69,16 @@ async function iniciarPeer() {
         const btnAceitar = document.getElementById('aceitar-chamada');
         const btnRecusar = document.getElementById('recusar-chamada');
       
-        // Mostrar de quem é a chamada
-        infoChamada.textContent = `Chamada recebida de ${chamada.peer}`;
-        modal.style.display = 'flex';
-      
         try {
           toque.muted = false;
           await toque.play().catch(e => console.log('Toque bloqueado:', e));
         } catch (err) {
           console.error('Erro ao tocar o som:', err);
         }
+      
+        // Só agora que recebemos chamada é que mostramos o modal:
+        infoChamada.textContent = `Chamada recebida de ${chamada.peer}`;
+        modal.style.display = 'flex';
       
         // Se clicar em Atender
         btnAceitar.onclick = async () => {
@@ -115,6 +115,7 @@ async function iniciarPeer() {
           chamadaAtual = null;
         };
       });
+      
       
 }
 
