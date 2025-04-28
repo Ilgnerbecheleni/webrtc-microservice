@@ -21,25 +21,20 @@ const toque = document.getElementById('toque');
 inicioDiv.style.display = 'block';
 
 entrarBtn.onclick = async () => {
-  try {
-    // Libera o audio mudo
-    await toque.play().catch(() => {});
-    toque.pause();
-    toque.currentTime = 0;
-
-    // Solicitar microfone agora (libera getUserMedia de uma vez)
-    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-
-    // Depois que clicou: mostra painel e conecta peer
-    inicioDiv.style.display = 'none';
-    painelDiv.style.display = 'block';
-
-    iniciarPeer();
-  } catch (err) {
-    alert('Permissão para áudio é obrigatória!');
-    console.error(err);
-  }
-};
+    try {
+      // Só liberar permissão
+      const streamTemp = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      streamTemp.getTracks().forEach(track => track.stop()); // Parar imediatamente
+  
+      inicioDiv.style.display = 'none';
+      painelDiv.style.display = 'block';
+  
+      await criarPeer(); // continuar igual
+    } catch (err) {
+      alert('Permissão para áudio é obrigatória!');
+      console.error(err);
+    }
+  };
 
 async function iniciarPeer() {
     const res = await fetch('/token');
@@ -66,40 +61,61 @@ async function iniciarPeer() {
       carregarClientes();
     });
 
-  peer.on('call', async (chamada) => {
-    try {
-      toque.muted = false;
-      await toque.play().catch(e => console.log('Toque bloqueado:', e));
-    } catch (err) {
-      console.error('Erro ao tocar:', err);
-    }
-
-    const aceitar = confirm(`Chamada recebida de ${chamada.peer}. Atender?`);
-
-    toque.pause();
-    toque.currentTime = 0;
-
-    if (aceitar) {
-      chamada.answer(localStream); // Aqui usamos a localStream já autorizada
-
-      chamadaAtual = chamada;
-
-      chamada.on('stream', (stream) => {
-        const audio = new Audio();
-        audio.srcObject = stream;
-        audio.play();
+    peer.on('call', async (chamada) => {
+        chamadaAtual = chamada;
+      
+        const modal = document.getElementById('modal-atendimento');
+        const infoChamada = document.getElementById('info-chamada');
+        const btnAceitar = document.getElementById('aceitar-chamada');
+        const btnRecusar = document.getElementById('recusar-chamada');
+      
+        // Mostrar de quem é a chamada
+        infoChamada.textContent = `Chamada recebida de ${chamada.peer}`;
+        modal.style.display = 'flex';
+      
+        try {
+          toque.muted = false;
+          await toque.play().catch(e => console.log('Toque bloqueado:', e));
+        } catch (err) {
+          console.error('Erro ao tocar o som:', err);
+        }
+      
+        // Se clicar em Atender
+        btnAceitar.onclick = async () => {
+          modal.style.display = 'none';
+          toque.pause();
+          toque.currentTime = 0;
+      
+          try {
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            chamada.answer(localStream);
+      
+            chamada.on('stream', (stream) => {
+              const audio = new Audio();
+              audio.srcObject = stream;
+              audio.play();
+            });
+      
+            chamada.on('close', () => {
+              encerrarChamada();
+            });
+      
+            document.getElementById('chamada').style.display = 'block';
+          } catch (err) {
+            console.error('Erro ao atender chamada:', err);
+          }
+        };
+      
+        // Se clicar em Recusar
+        btnRecusar.onclick = () => {
+          modal.style.display = 'none';
+          toque.pause();
+          toque.currentTime = 0;
+          chamada.close();
+          chamadaAtual = null;
+        };
       });
-
-      chamada.on('close', () => {
-        encerrarChamada();
-      });
-
-      document.getElementById('chamada').style.display = 'block';
-    } else {
-      console.log('Chamada recusada.');
-      chamada.close();
-    }
-  });
+      
 }
 
 async function carregarClientes() {
@@ -142,11 +158,14 @@ document.getElementById('encerrar').onclick = () => {
 
 function encerrarChamada() {
     if (chamadaAtual) {
-      chamadaAtual.close();
+      chamadaAtual.close(); // Garante fechamento local
       chamadaAtual = null;
     }
   
-    document.getElementById('chamada').style.display = 'none';
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+      localStream = null;
+    }
   
-    // (Importante) NÃO encerrar localStream aqui! Senão o usuário teria que dar permissão de novo para outra chamada.
+    document.getElementById('chamada').style.display = 'none';
   }
