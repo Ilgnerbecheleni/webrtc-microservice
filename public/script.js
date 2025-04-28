@@ -41,20 +41,30 @@ entrarBtn.onclick = async () => {
   }
 };
 
-function iniciarPeer() {
-  document.getElementById('meu-id-span').textContent = meuId;
-
-  peer = new Peer(meuId, {
-    host: location.hostname,
-    port: 443,
-    secure: true,
-    path: '/peerjs'
-  });
-
-  peer.on('open', (id) => {
-    console.log('Conectado como:', id);
-    carregarClientes();
-  });
+async function iniciarPeer() {
+    const res = await fetch('/token');
+    const token = await res.json();
+  
+    peer = new Peer(meuId, {
+      host: location.hostname,
+      port: 443,
+      secure: true,
+      path: '/peerjs',
+      config: {
+        iceServers: [
+          {
+            urls: token.urls,
+            username: token.username,
+            credential: token.credential
+          }
+        ]
+      }
+    });
+  
+    peer.on('open', (id) => {
+      console.log('PeerJS conectado com id:', id);
+      carregarClientes();
+    });
 
   peer.on('call', async (chamada) => {
     try {
