@@ -1,7 +1,7 @@
 let peer = null;
 let localStream = null;
 let chamadaAtual = null;
-
+let verificarChamadaInterval = null; // <-- Aqui: controlar o setInterval
 const modal = document.getElementById('modal-atendimento');
 modal.style.display = 'none'; // Garante início escondido
 const urlParams = new URLSearchParams(window.location.search);
@@ -146,6 +146,7 @@ async function iniciarChamada(destinoId) {
     });
 
     document.getElementById('chamada').style.display = 'block';
+    iniciarVerificacaoChamada(); // Inicia verificação de chamada
   } catch (err) {
     console.error('Erro ao iniciar chamada:', err);
   }
@@ -168,3 +169,29 @@ function encerrarChamada() {
 
   document.getElementById('chamada').style.display = 'none';
 }
+
+function iniciarVerificacaoChamada() {
+    if (verificarChamadaInterval) {
+      clearInterval(verificarChamadaInterval); // limpa o antigo se existir
+    }
+  
+    verificarChamadaInterval = setInterval(() => {
+        clearInterval(verificarChamadaInterval); // Limpa o intervalo anterior
+        if (!chamadaAtual) {
+        document.getElementById('chamada').style.display = 'none';
+      } else {
+        try {
+          if (chamadaAtual.peerConnection) {
+            const state = chamadaAtual.peerConnection.connectionState || chamadaAtual.peerConnection.iceConnectionState;
+            if (state === 'closed' || state === 'failed' || state === 'disconnected') {
+              console.log('Chamada detectada como encerrada automaticamente.');
+              encerrarChamada();
+            }
+          }
+        } catch (err) {
+          console.warn('Erro ao verificar estado da chamada:', err);
+        }
+      }
+    }, 2000); // a cada 2 segundos
+  }
+  
