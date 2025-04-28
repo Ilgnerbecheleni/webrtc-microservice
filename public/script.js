@@ -61,62 +61,40 @@ async function iniciarPeer() {
       carregarClientes();
     });
 
-    peer.on('call', async (chamada) => {
-        chamadaAtual = chamada;
-      
-        const modal = document.getElementById('modal-atendimento');
-        const infoChamada = document.getElementById('info-chamada');
-        const btnAceitar = document.getElementById('aceitar-chamada');
-        const btnRecusar = document.getElementById('recusar-chamada');
-      
-        try {
-          toque.muted = false;
-          await toque.play().catch(e => console.log('Toque bloqueado:', e));
-        } catch (err) {
-          console.error('Erro ao tocar o som:', err);
-        }
-      
-        // Só agora que recebemos chamada é que mostramos o modal:
-        infoChamada.textContent = `Chamada recebida de ${chamada.peer}`;
-        modal.style.display = 'flex';
-      
-        // Se clicar em Atender
-        btnAceitar.onclick = async () => {
-          modal.style.display = 'none';
-          toque.pause();
-          toque.currentTime = 0;
-      
-          try {
-            localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-            chamada.answer(localStream);
-      
-            chamada.on('stream', (stream) => {
-              const audio = new Audio();
-              audio.srcObject = stream;
-              audio.play();
-            });
-      
-            chamada.on('close', () => {
-              encerrarChamada();
-            });
-      
-            document.getElementById('chamada').style.display = 'block';
-          } catch (err) {
-            console.error('Erro ao atender chamada:', err);
-          }
-        };
-      
-        // Se clicar em Recusar
-        btnRecusar.onclick = () => {
-          modal.style.display = 'none';
-          toque.pause();
-          toque.currentTime = 0;
-          chamada.close();
-          chamadaAtual = null;
-        };
+  peer.on('call', async (chamada) => {
+    try {
+      toque.muted = false;
+      await toque.play().catch(e => console.log('Toque bloqueado:', e));
+    } catch (err) {
+      console.error('Erro ao tocar:', err);
+    }
+
+    const aceitar = confirm(`Chamada recebida de ${chamada.peer}. Atender?`);
+
+    toque.pause();
+    toque.currentTime = 0;
+
+    if (aceitar) {
+      chamada.answer(localStream); // Aqui usamos a localStream já autorizada
+
+      chamadaAtual = chamada;
+
+      chamada.on('stream', (stream) => {
+        const audio = new Audio();
+        audio.srcObject = stream;
+        audio.play();
       });
-      
-      
+
+      chamada.on('close', () => {
+        encerrarChamada();
+      });
+
+      document.getElementById('chamada').style.display = 'block';
+    } else {
+      console.log('Chamada recusada.');
+      chamada.close();
+    }
+  });
 }
 
 async function carregarClientes() {
