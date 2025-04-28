@@ -1,7 +1,8 @@
 let peer = null;
 let localStream = null;
 let chamadaAtual = null;
-
+const modal = document.getElementById('modal-atendimento');
+modal.style.display = 'none'; // <-- reforça o início escondido
 const urlParams = new URLSearchParams(window.location.search);
 const meuId = urlParams.get('id');
 
@@ -64,6 +65,7 @@ async function iniciarPeer() {
   peer.on('call', async (chamada) => {
     try {
       toque.muted = false;
+      modal.style.display = 'flex';
       await toque.play().catch(e => console.log('Toque bloqueado:', e));
     } catch (err) {
       console.error('Erro ao tocar:', err);
