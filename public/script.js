@@ -46,7 +46,8 @@ function iniciarPeer() {
 
   peer = new Peer(meuId, {
     host: location.hostname,
-    port: location.port || (location.protocol === 'https:' ? 443 : 80),
+    port: 443,
+    secure: true,
     path: '/peerjs'
   });
 

@@ -2,11 +2,158 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Microserviço de Chamadas WebRTC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+      --secondary: #64748b;
+      --background: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-align: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--secondary);
+    }
+
     #inicio, #painel {
       display: none;
       margin-top: 20px;
+      background-color: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      padding: 2rem;
+    }
+
+    button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    button:hover {
+      background-color: var(--primary-dark);
+    }
+
+    #entrar {
+      display: block;
+      margin: 2rem auto;
+      font-size: 1.2rem;
+      padding: 1rem 2rem;
+    }
+
+    #encerrar {
+      background-color: var(--danger);
+    }
+
+    #encerrar:hover {
+      background-color: #dc2626;
+    }
+
+    #meu-id {
+      background-color: var(--background);
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      border: 1px solid var(--border);
+    }
+
+    #meu-id-span {
+      font-weight: 600;
+      color: var(--primary);
+      margin-left: 0.5rem;
+    }
+
+    #clientes {
+      list-style: none;
+      margin-top: 1rem;
+    }
+
+    #clientes li {
+      padding: 1rem;
+      margin-bottom: 0.5rem;
+      background-color: var(--background);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform 0.2s ease;
+    }
+
+    #clientes li:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    #chamada {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      border-radius: 8px;
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+    }
+
+    #chamada h2 {
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      #inicio, #painel {
+        padding: 1.5rem;
+      }
     }
   </style>
 </head>
