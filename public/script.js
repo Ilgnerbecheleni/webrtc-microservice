@@ -30,7 +30,7 @@ entrarBtn.onclick = async () => {
       inicioDiv.style.display = 'none';
       painelDiv.style.display = 'block';
   
-      await criarPeer(); // continuar igual
+      await iniciarPeer(); // continuar igual
     } catch (err) {
       alert('Permissão para áudio é obrigatória!');
       console.error(err);
