@@ -18,7 +18,30 @@ const ca = fs.readFileSync('/etc/letsencrypt/live/webrtc.jobsconnect.com.br/chai
 const credentials = { key: privateKey, cert: certificate, ca: ca };
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: 'https://webrtc-voip-next.vercel.app',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
+
+const allowedOrigins = [
+  'https://webrtc-voip-next.vercel.app',
+  'http://localhost:3000'
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
+
+
 app.use(express.json());
 app.use(express.static('public'));
 
