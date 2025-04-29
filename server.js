@@ -88,6 +88,37 @@ app.post('/cadastrar', (req, res) => {
   }
 });
 
+// ➞ API: Atualizar cliente
+app.put('/clientes/:id', (req, res) => {
+  const { nome } = req.body;
+  const { id } = req.params;
+
+  if (!nome) {
+    return res.status(400).json({ error: 'Nome é obrigatório.' });
+  }
+
+  const info = db.prepare('UPDATE clientes SET nome = ? WHERE id = ?').run(nome, id);
+
+  if (info.changes === 0) {
+    return res.status(404).json({ error: 'Cliente não encontrado.' });
+  }
+
+  res.json({ success: true });
+});
+
+// ➞ API: Deletar cliente
+app.delete('/clientes/:id', (req, res) => {
+  const { id } = req.params;
+  const info = db.prepare('DELETE FROM clientes WHERE id = ?').run(id);
+
+  if (info.changes === 0) {
+    return res.status(404).json({ error: 'Cliente não encontrado.' });
+  }
+
+  res.json({ success: true });
+});
+
+
 // Porta
 const PORT = 3000;
 server.listen(PORT, () => {
