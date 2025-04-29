@@ -5,7 +5,7 @@ const fs = require('fs');
 const crypto = require('crypto'); // <-- aqui adicionamos
 const app = express();
 const server = require('http').Server(app);
-
+const cors = require('cors');
 // Carregar clientes do JSON
 const clients = JSON.parse(fs.readFileSync('./clients.json', 'utf8'));
 
@@ -16,7 +16,7 @@ const peerServer = ExpressPeerServer(server, {
 });
 
 app.use('/', peerServer);
-
+app.use(cors()); // Habilitar CORS para todas as rotas
 // Servir arquivos estáticos (nossos HTML/JS)
 app.use(express.static('public'));
 
