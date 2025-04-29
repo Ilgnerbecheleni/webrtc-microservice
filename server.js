@@ -2,12 +2,23 @@ const express = require('express');
 const { ExpressPeerServer } = require('peer');
 const path = require('path');
 const fs = require('fs');
-const crypto = require('crypto'); // <-- aqui adicionamos
+const crypto = require('crypto');
+const cors = require('cors');
+const Database = require('better-sqlite3');
+
 const app = express();
 const server = require('http').Server(app);
-const cors = require('cors');
-// Carregar clientes do JSON
-const clients = JSON.parse(fs.readFileSync('./clients.json', 'utf8'));
+
+// Inicializar Banco de Dados
+const db = new Database('clientes.db');
+
+// Criar tabela se não existir
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS clientes (
+    id TEXT PRIMARY KEY,
+    nome TEXT NOT NULL
+  )
+`).run();
 
 // PeerJS Server
 const peerServer = ExpressPeerServer(server, {
@@ -15,33 +26,31 @@ const peerServer = ExpressPeerServer(server, {
   path: '/peerjs'
 });
 
+// Middlewares
 app.use('/', peerServer);
-app.use(cors()); // Habilitar CORS para todas as rotas
-// Servir arquivos estáticos (nossos HTML/JS)
+app.use(cors());
+app.use(express.json()); // Agora podemos receber JSON em POST
 app.use(express.static('public'));
 
-// Middleware simples para passar o ID do cliente
+// Página principal
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-
-
-// Constantes para TURN
-const TURN_SECRET = 'meusegredo123456'; // mesmo que no turnserver.conf
+// Constantes TURN
+const TURN_SECRET = 'meusegredo123456';
 const TURN_REALM = 'jobsconnect.com.br';
 
 // API para gerar token TURN
 app.get('/token', (req, res) => {
-  const expiry = Math.floor(Date.now() / 1000) + 3600; // +1h
-  const username = `${expiry}`;
-  
+  const expiry = Math.floor(Date.now() / 1000) + 3600;
+
   const hmac = crypto.createHmac('sha1', TURN_SECRET);
-  hmac.update(username);
+  hmac.update(`${expiry}`);
   const credential = hmac.digest('base64');
 
   res.json({
-    username,
+    username: `${expiry}`,
     credential,
     ttl: 3600,
     urls: [
@@ -51,10 +60,35 @@ app.get('/token', (req, res) => {
     ]
   });
 });
-app.get('/clientes', (req, res) => {
-    res.json(clients);
-  });
 
+// ➡️ API: Listar clientes
+app.get('/clientes', (req, res) => {
+  const clientes = db.prepare('SELECT id, nome FROM clientes').all();
+  res.json(clientes);
+});
+
+// ➡️ API: Cadastrar novo cliente
+app.post('/cadastrar', (req, res) => {
+  const { id, nome } = req.body;
+
+  if (!id || !nome) {
+    return res.status(400).json({ error: 'ID e Nome são obrigatórios.' });
+  }
+
+  try {
+    db.prepare('INSERT INTO clientes (id, nome) VALUES (?, ?)').run(id, nome);
+    res.json({ success: true });
+  } catch (err) {
+    if (err.code === 'SQLITE_CONSTRAINT_PRIMARYKEY') {
+      res.status(409).json({ error: 'ID já existente.' });
+    } else {
+      console.error(err);
+      res.status(500).json({ error: 'Erro ao cadastrar cliente.' });
+    }
+  }
+});
+
+// Porta
 const PORT = 3000;
 server.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
